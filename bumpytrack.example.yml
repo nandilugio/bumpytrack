@@ -1,0 +1,10 @@
+current_version: 2.0.1
+
+git_commit: True
+git_tag: True
+
+file_replaces:
+  - path: setup.cfg
+    search_template: version = '{version}'
+  - path: README.md
+    search_template: Current version is '{version}'.

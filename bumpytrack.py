@@ -1,14 +1,34 @@
-import logging
 import os
+import subprocess
 import yaml
 
-log = logging.getLogger()
+
+class Logger(object):
+    def set_verbose(self,verbose=True):
+        self._verbose = verbose
+
+    def log(self, message):
+        print(message)
+
+    def log_verbose(self, message):
+        if not self._verbose:
+            return
+        self.log(message)
+
+logger = Logger()
 
 
 def fail(message):
-    import pdb; pdb.set_trace()
-    log.error(message)
+    logger.log(message)
     exit(1)
+
+def run_command(command_tokens):
+    completed_process = subprocess.run(command_tokens, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    if completed_process.returncode != 0:
+        command = " ".join(command_tokens)
+        output = completed_process.stdout.decode('utf-8')
+        fail(f"Failed to execute '{command}'. Output was:\n\n{output}\n")
 
 
 def parse_version(version):
@@ -45,46 +65,58 @@ def increment_version(current_version, part):
 
 
 def file_replace(file_replace_config, current_version, new_version):
+    file_path = file_replace_config["path"]
+    logger.log_verbose(f"Replacing version string in '{file_path}'.")
+
     search = file_replace_config["search_template"].format(version=current_version)
     replace = file_replace_config["search_template"].format(version=new_version)
+    logger.log_verbose(f"Searching '{search}' and replacing for '{replace}'")
 
-    file_path = file_replace_config["path"]
     if not os.access(file_path, os.R_OK | os.W_OK):
-        fail(f"File {file_path} not found or not accessible")
+        fail(f"File '{file_path}' not found or not accessible")
 
     original_file_contents = None
     with open(file_replace_config["path"], "r") as file:
         original_file_contents = file.read()
 
     new_file_contents = original_file_contents.replace(search, replace)
+    if original_file_contents == new_file_contents:
+        fail(f"Nothing to replace in file '{file_path}'. Aborting since this looks like a misconfiguration or an"
+              "inconsistent version in config file.")
 
     with open(file_replace_config["path"], "w") as file:
         file.write(new_file_contents)
 
 
-def git_commit(current_version, new_version):
-    raise NotImplementedError
+def git_commit(modified_files, current_version, new_version):
+    # TODO: make git path configurable
+    commit_message = f"Bumping version: {current_version} → {new_version}"
+    run_command(["git", "reset", "HEAD"])
+    run_command(["git", "add"] + modified_files)
+    run_command(["git", "commit", "-m", commit_message])
+
 
 def git_tag(new_version):
-    raise NotImplementedError
+    # TODO: make this format configurable
+    tag = f"v{new_version}"
+    run_command(["git", "tag", tag])
 
 
 def main(**args):
-    log_level = args.get("log_level") or "INFO"
-    try:
-        log.setLevel(getattr(logging, log_level.upper()))
-    except AttributeError:
-        fail("Log level should be one of Python's valid log level names.")
+    logger.set_verbose(args.get("verbose"))
 
     # Load config
     config_path = args.get("config_path") or ".bumpytrack.yml"
-    config = yaml.load(open(config_path))
+    try:
+        config = yaml.load(open(config_path))
+    except RuntimeError:
+        fail("Failed to load config file at '{config_path}'.")
 
     # Get current version
     current_version = args.get("current_version") or config.get("current_version")
     if not current_version:
         fail("No way to obtain current version")
-    log.info(f"Current version: {current_version}")
+    logger.log(f"Current version: '{current_version}'")
 
     # Get new version
     if args.get("new_version"):
@@ -93,23 +125,26 @@ def main(**args):
         new_version = increment_version(current_version, args.get("part"))
     else:
         fail("No way to obtain a new version")
-    log.info(f"New version: {new_version}")
+    logger.log(f"New version: '{new_version}'")
 
     # Replace version in config file and other configured files
+    logger.log(f"Replacing version srting in files")
     file_replace_configs = [{"path": config_path, "search_template": "current_version: {version}"}]
     file_replace_configs += config.get("file_replaces", [])
+    modified_files = []
     for file_replace_config in file_replace_configs:
-        log.info(f"Replacing version in file {file_replace_config['path']}")
+        file_path = file_replace_config['path']
         file_replace(file_replace_config, current_version, new_version)
+        modified_files.append(file_path)
 
     # Git commit file changes
-    if args.get("git_commit", config.get("git_commit")):
-        log.info("Committing changes to GIT")
-        git_commit(current_version, new_version)
+    if args.get("git_commit") if args.get("git_commit") is not None else config.get("git_commit"):
+        logger.log("Committing changes to GIT")
+        git_commit(modified_files, current_version, new_version)
 
     # Git tag new version
-    if args.get("git_tag", config.get("git_tag")):
-        log.info("Adding version tag to GIT")
+    if args.get("git_tag") if args.get("git_tag") is not None else config.get("git_tag"):
+        logger.log("Adding version tag to GIT")
         git_tag(new_version)
 
 
@@ -119,10 +154,12 @@ if __name__ == "__main__":
     parser.add_argument("part", help="Version token to bump: major, minor or tiny.")
     parser.add_argument("--current-version", help="Force current version instead using version in config file.")
     parser.add_argument("--new-version", help="Force new version instead using version in config file.")
-    parser.add_argument("--git-commit", type=bool, help="Commit changes (will bring anything stashed!): True or False.")
-    parser.add_argument("--git-tag", type=bool, help="Tag this reference with the new version: True or False.")
+    parser.add_argument("--git-commit", dest="git_commit", action="store_true", default=None, help="GIT: Commit files with version replacements.")
+    parser.add_argument("--no-git-commit", dest="git_commit", action="store_false", default=None)
+    parser.add_argument("--git-tag", dest="git_tag", action="store_true", default=None, help="GIT: Tag this reference with the new version.")
+    parser.add_argument("--no-git-tag", dest="git_tag", action="store_false", default=None)
     parser.add_argument("--config-path", help="Path to config file. Defaults to .bumpytrack.yml in current directory.")
-    parser.add_argument("--log-level", help="Set log level. Should be one of Python's valid log level names.")
+    parser.add_argument("--verbose", action="store_true")
     args_namespace = parser.parse_args()
     args = vars(args_namespace)
 
