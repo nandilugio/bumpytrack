@@ -65,7 +65,6 @@ def file_replace(file_replace_config, current_version, new_version):
 def git_commit(current_version, new_version):
     raise NotImplementedError
 
-
 def git_tag(new_version):
     raise NotImplementedError
 
@@ -117,13 +116,13 @@ def main(**args):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("part", help="major, minor or tiny")
-    parser.add_argument("--current-version")
-    parser.add_argument("--new-version")
-    parser.add_argument("--git-commit")
-    parser.add_argument("--git-tag")
-    parser.add_argument("--config-path")
-    parser.add_argument("--log-level")
+    parser.add_argument("part", help="Version token to bump: major, minor or tiny.")
+    parser.add_argument("--current-version", help="Force current version instead using version in config file.")
+    parser.add_argument("--new-version", help="Force new version instead using version in config file.")
+    parser.add_argument("--git-commit", type=bool, help="Commit changes (will bring anything stashed!): True or False.")
+    parser.add_argument("--git-tag", type=bool, help="Tag this reference with the new version: True or False.")
+    parser.add_argument("--config-path", help="Path to config file. Defaults to .bumpytrack.yml in current directory.")
+    parser.add_argument("--log-level", help="Set log level. Should be one of Python's valid log level names.")
     args_namespace = parser.parse_args()
     args = vars(args_namespace)
 
