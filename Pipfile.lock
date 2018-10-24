@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "d518a36ed441568acff15b0a3c4b536738a55fb68801cdd682045be04d29954a"
+            "sha256": "cb721423726b04cfac3cf4de03712453d92d9b5fd0963e42f62ef85725c89497"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,10 @@
         ]
     },
     "default": {
+        "bumpytrack": {
+            "editable": true,
+            "path": "."
+        },
         "pyyaml": {
             "hashes": [
                 "sha256:3d7da3009c0f3e783b2c873687652d83b1bbfd5c88e9813fb7e5b03c0dd3108b",
@@ -30,7 +34,6 @@
                 "sha256:e01d3203230e1786cd91ccfdc8f8454c8069c91bee3962ad93b87a4b2860f537",
                 "sha256:e170a9e6fcfd19021dd29845af83bb79236068bf5fd4df3327c1be18182b2531"
             ],
-            "index": "pypi",
             "version": "==3.13"
         }
     },

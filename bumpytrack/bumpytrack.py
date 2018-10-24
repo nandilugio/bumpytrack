@@ -3,6 +3,8 @@ import subprocess
 import yaml
 
 
+# Logging
+
 class Logger(object):
     def set_verbose(self,verbose=True):
         self._verbose = verbose
@@ -18,6 +20,8 @@ class Logger(object):
 logger = Logger()
 
 
+# System
+
 def fail(message):
     logger.log(message)
     exit(1)
@@ -30,6 +34,8 @@ def run_command(command_tokens):
         output = completed_process.stdout.decode('utf-8')
         fail(f"Failed to execute '{command}'. Output was:\n\n{output}\n")
 
+
+# SemVer
 
 def parse_version(version):
     try:
@@ -44,10 +50,8 @@ def parse_version(version):
 
     return int_tokens
 
-
 def version_tokens_to_str(int_tokens):
     return ".".join(str(int_token) for int_token in int_tokens)
-
 
 def increment_version(current_version, part):
     current_version_tokens = parse_version(current_version)
@@ -63,6 +67,8 @@ def increment_version(current_version, part):
 
     return version_tokens_to_str(new_version_tokens)
 
+
+# App Tasks
 
 def file_replace(file_replace_config, current_version, new_version):
     file_path = file_replace_config["path"]
@@ -87,14 +93,12 @@ def file_replace(file_replace_config, current_version, new_version):
     with open(file_replace_config["path"], "w") as file:
         file.write(new_file_contents)
 
-
 def git_commit(modified_files, current_version, new_version):
     # TODO: make git path configurable
     commit_message = f"Bumping version: {current_version} → {new_version}"
     run_command(["git", "reset", "HEAD"])
     run_command(["git", "add"] + modified_files)
     run_command(["git", "commit", "-m", commit_message])
-
 
 def git_tag(new_version):
     # TODO: make this format configurable
@@ -148,7 +152,7 @@ def main(**args):
         git_tag(new_version)
 
 
-if __name__ == "__main__":
+def commandline_entrypoint():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("part", help="Version token to bump: major, minor or tiny.")
@@ -164,3 +168,8 @@ if __name__ == "__main__":
     args = vars(args_namespace)
 
     main(**args)
+
+
+if __name__ == "__main__":
+    commandline_entrypoint()
+
