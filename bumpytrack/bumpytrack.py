@@ -69,10 +69,10 @@ def increment_version(current_version, part):
         new_version_tokens = [current_version_tokens[0] + 1, 0, 0]
     elif part == "minor":
         new_version_tokens = [current_version_tokens[0], current_version_tokens[1] + 1, 0]
-    elif part == "tiny":
+    elif part == "patch":
         new_version_tokens = [current_version_tokens[0], current_version_tokens[1], current_version_tokens[2] + 1]
     else:
-        fail("Part should be one of: major, minor or tiny.")
+        fail("Part should be one of: major, minor or patch.")
 
     return version_tokens_to_str(new_version_tokens)
 
@@ -164,7 +164,7 @@ def main(**args):
 def commandline_entrypoint():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("part", help="Version token to bump: major, minor or tiny.")
+    parser.add_argument("part", help="Version token to bump: major, minor or patch.")
     parser.add_argument("--current-version", help="Force current version instead using version in config file.")
     parser.add_argument("--new-version", help="Force new version instead using version in config file.")
     parser.add_argument("--git-commit", dest="git_commit", action="store_true", default=None, help="GIT: Commit files with version replacements.")
