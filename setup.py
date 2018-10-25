@@ -20,6 +20,7 @@ setuptools.setup(
     ],
     install_requires=[
         "pyyaml",
+        "subprocess32",
     ],
     packages=setuptools.find_packages(),
     entry_points={

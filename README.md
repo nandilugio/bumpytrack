@@ -1,3 +1,6 @@
+Current version: 0.1.0
+Compatible with Python >=2.7
+
 # BumpyTrack
 
 Bumping the ([semantic](https://semver.org/)) version of your software every time a release is done can be a tedious task, if you:

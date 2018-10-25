@@ -1,6 +1,15 @@
+# -*- coding: utf-8 -*-
+from __future__ import print_function
+
 import os
 import subprocess
+import sys
 import yaml
+
+if os.name == 'posix' and sys.version_info[0] < 3:
+    import subprocess32 as subprocess
+else:
+    import subprocess
 
 
 # Logging
@@ -32,7 +41,7 @@ def run_command(command_tokens):
     if completed_process.returncode != 0:
         command = " ".join(command_tokens)
         output = completed_process.stdout.decode('utf-8')
-        fail(f"Failed to execute '{command}'. Output was:\n\n{output}\n")
+        fail("Failed to execute '{command}'. Output was:\n\n{output}\n".format(**locals()))
 
 
 # SemVer
@@ -72,14 +81,14 @@ def increment_version(current_version, part):
 
 def file_replace(file_replace_config, current_version, new_version):
     file_path = file_replace_config["path"]
-    logger.log_verbose(f"Replacing version string in '{file_path}'.")
+    logger.log_verbose("Replacing version string in '{file_path}'.".format(**locals()))
 
     search = file_replace_config["search_template"].format(version=current_version)
     replace = file_replace_config["search_template"].format(version=new_version)
-    logger.log_verbose(f"Searching '{search}' and replacing for '{replace}'")
+    logger.log_verbose("Searching '{search}' and replacing for '{replace}'".format(**locals()))
 
     if not os.access(file_path, os.R_OK | os.W_OK):
-        fail(f"File '{file_path}' not found or not accessible")
+        fail("File '{file_path}' not found or not accessible".format(**locals()))
 
     original_file_contents = None
     with open(file_replace_config["path"], "r") as file:
@@ -87,22 +96,22 @@ def file_replace(file_replace_config, current_version, new_version):
 
     new_file_contents = original_file_contents.replace(search, replace)
     if original_file_contents == new_file_contents:
-        fail(f"Nothing to replace in file '{file_path}'. Aborting since this looks like a misconfiguration or an"
-              "inconsistent version in config file.")
+        fail("Nothing to replace in file '{file_path}'. Aborting since this looks like a misconfiguration or an"
+             "inconsistent version in config file.".format(**locals()))
 
     with open(file_replace_config["path"], "w") as file:
         file.write(new_file_contents)
 
 def git_commit(modified_files, current_version, new_version):
     # TODO: make git path configurable
-    commit_message = f"Bumping version: {current_version} → {new_version}"
+    commit_message = u"Bumping version: {current_version} → {new_version}".format(**locals())
     run_command(["git", "reset", "HEAD"])
     run_command(["git", "add"] + modified_files)
     run_command(["git", "commit", "-m", commit_message])
 
 def git_tag(new_version):
     # TODO: make this format configurable
-    tag = f"v{new_version}"
+    tag = "v{new_version}".format(**locals())
     run_command(["git", "tag", tag])
 
 
@@ -120,7 +129,7 @@ def main(**args):
     current_version = args.get("current_version") or config.get("current_version")
     if not current_version:
         fail("No way to obtain current version")
-    logger.log(f"Current version: '{current_version}'")
+    logger.log("Current version: '{current_version}'".format(**locals()))
 
     # Get new version
     if args.get("new_version"):
@@ -129,12 +138,12 @@ def main(**args):
         new_version = increment_version(current_version, args.get("part"))
     else:
         fail("No way to obtain a new version")
-    logger.log(f"New version: '{new_version}'")
+    logger.log("New version: '{new_version}'".format(**locals()))
 
     # Replace version in config file and other configured files
-    logger.log(f"Replacing version srting in files")
-    file_replace_configs = [{"path": config_path, "search_template": "current_version: {version}"}]
-    file_replace_configs += config.get("file_replaces", [])
+    logger.log("Replacing version srting in files".format(**locals()))
+    file_replace_configs = config.get("file_replaces") or []
+    file_replace_configs.append({"path": config_path, "search_template": "current_version: {version}"})
     modified_files = []
     for file_replace_config in file_replace_configs:
         file_path = file_replace_config['path']
