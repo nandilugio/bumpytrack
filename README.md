@@ -1,3 +1,5 @@
+Current version: 0.2.0
+
 # BumpyTrack
 
 Bumping the ([semantic](https://semver.org/)) version of your software every time a release is done can be a tedious task, if you:
