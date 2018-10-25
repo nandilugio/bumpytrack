@@ -5,7 +5,7 @@ with open("README.md", "r") as f:
 
 setuptools.setup(
     name="bumpytrack",
-    version="0.1.0",
+    version="0.2.0",
     description="Simple semantic-version bumper in python that works(tm).",
     long_description=long_description,
     long_description_content_type="text/markdown",
