@@ -85,6 +85,8 @@ To add a _development_ dependency, add it to `Pipfile` via `pipenv install -d <m
 
 This way there's a single source of truth for package definition. No need to repeat the deps in `setup.py` and `Pipfile*`.
 
+Also, dev project tasks are managed using [nandilugio/pepython](https://github.com/nandilugio/pepython). See the tasks defined in [`tasks.py`](https://github.com/nandilugio/bumpytrack/blob/master/tasks.py).
+
 ## License
 
 This project is licensed under the MIT License - see the [`LICENSE`](https://github.com/nandilugio/bumpytrack/blob/master/LICENSE) file for details.
