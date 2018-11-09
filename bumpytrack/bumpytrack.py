@@ -82,8 +82,9 @@ def file_replace(file_replace_config, current_version, new_version):
     file_path = file_replace_config["path"]
     logger.log_verbose("Replacing version string in '{file_path}'.".format(**locals()))
 
-    search = file_replace_config["search_template"].format(version=current_version)
-    replace = file_replace_config["search_template"].format(version=new_version)
+    search_template = file_replace_config.get("search_template", "{version}")
+    search = search_template.format(version=current_version)
+    replace = search_template.format(version=new_version)
     logger.log_verbose("Searching '{search}' and replacing for '{replace}'".format(**locals()))
 
     if not os.access(file_path, os.R_OK | os.W_OK):
