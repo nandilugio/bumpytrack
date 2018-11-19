@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import os
 import sys
-import yaml
+import toml
 
 if os.name == 'posix' and sys.version_info[0] < 3:
     import subprocess32 as subprocess
@@ -119,9 +119,10 @@ def main(**args):
     logger.set_verbose(args.get("verbose"))
 
     # Load config
-    config_path = args.get("config_path") or ".bumpytrack.yml"
+    config_path = args.get("config_path") or "pyproject.toml"
     try:
-        config = yaml.load(open(config_path))
+        pyproject_toml = toml.load(config_path)
+        config = pyproject_toml.get("tool", {}).get("bumpytrack", {})
     except RuntimeError:
         fail("Failed to load config file at '{config_path}'.")
 
@@ -143,7 +144,7 @@ def main(**args):
     # Replace version in config file and other configured files
     logger.log("Replacing version srting in files".format(**locals()))
     file_replace_configs = config.get("file_replaces") or []
-    file_replace_configs.append({"path": config_path, "search_template": "current_version: {version}"})
+    file_replace_configs.append({"path": config_path, "search_template": "current_version = \"{version}\""})
     modified_files = []
     for file_replace_config in file_replace_configs:
         file_path = file_replace_config['path']
