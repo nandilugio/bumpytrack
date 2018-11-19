@@ -121,7 +121,7 @@ def main(**args):
     # Load config
     config_path = args.get("config_path") or ".bumpytrack.yml"
     try:
-        config = yaml.load(open(config_path))
+        config = yaml.safe_load(open(config_path))
     except RuntimeError:
         fail("Failed to load config file at '{config_path}'.")
 
