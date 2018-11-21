@@ -19,7 +19,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        "pyyaml",
+        "toml>=0.9.4",
         "subprocess32",
     ],
     packages=setuptools.find_packages(),
