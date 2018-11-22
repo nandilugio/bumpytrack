@@ -172,7 +172,7 @@ def commandline_entrypoint():
     parser.add_argument("--no-git-commit", dest="git_commit", action="store_false", default=None)
     parser.add_argument("--git-tag", dest="git_tag", action="store_true", default=None, help="GIT: Tag this reference with the new version.")
     parser.add_argument("--no-git-tag", dest="git_tag", action="store_false", default=None)
-    parser.add_argument("--config-path", help="Path to config file. Defaults to .bumpytrack.yml in current directory.")
+    parser.add_argument("--config-path", help="Path to config file. Defaults to pyproject.toml in current directory.")
     parser.add_argument("--verbose", action="store_true")
     args_namespace = parser.parse_args()
     args = vars(args_namespace)

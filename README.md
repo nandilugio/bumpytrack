@@ -23,7 +23,7 @@ It will:
 
 Now you're free to push, merge to master and deploy!
 
-For the above version string replacements we'll need some config. [This example](https://github.com/nandilugio/bumpytrack/blob/master/bumpytrack.example.yml) should be autoexplicative. Save it as `.bumpytrack.yml` in the root of your repository and you're good to go.
+For the above version string replacements we'll need some config. [This example](https://github.com/nandilugio/bumpytrack/blob/master/pyproject.toml) should be autoexplicative. Save it as `pyproject.toml` in the root of your repository and you're good to go.
 
 ## Installation
 
@@ -31,7 +31,7 @@ For the above version string replacements we'll need some config. [This example]
 pip install bumpytrack
 ```
 
-Then add a `.bumpytrack.yml` to the root of your repository and configure it [like this](https://github.com/nandilugio/bumpytrack/blob/master/bumpytrack.example.yml).
+Then add a `pyproject.toml` to the root of your repository and configure it [like this](https://github.com/nandilugio/bumpytrack/blob/master/pyproject.toml).
 
 ## Help
 
@@ -55,7 +55,7 @@ Some of the available options:
   --git-tag             GIT: Tag this reference with the new version.
   --no-git-tag
   --config-path CONFIG_PATH
-                        Path to config file. Defaults to .bumpytrack.yml in
+                        Path to config file. Defaults to pyproject.toml in
                         current directory.
   --verbose
 ```
