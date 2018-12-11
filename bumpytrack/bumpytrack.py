@@ -94,7 +94,7 @@ def file_replace(file_replace_config, current_version, new_version):
     with open(file_replace_config["path"], "r") as file:
         original_file_contents = file.read()
 
-    new_file_contents = original_file_contents.replace(search, replace)
+    new_file_contents = original_file_contents.decode("utf-8").replace(search, replace).encode("utf-8")
     if original_file_contents == new_file_contents:
         fail("Nothing to replace in file '{file_path}'. Aborting since this looks like a misconfiguration or an"
              "inconsistent version in config file.".format(**locals()))
