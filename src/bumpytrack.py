@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+from __future__ import unicode_literals
 
+import codecs
 import os
 import sys
 import toml
@@ -91,15 +93,15 @@ def file_replace(file_replace_config, current_version, new_version):
         fail("File '{file_path}' not found or not accessible".format(**locals()))
 
     original_file_contents = None
-    with open(file_replace_config["path"], "r") as file:
+    with codecs.open(file_replace_config["path"], "r", encoding="utf-8") as file:
         original_file_contents = file.read()
 
-    new_file_contents = original_file_contents.decode("utf-8").replace(search, replace).encode("utf-8")
+    new_file_contents = original_file_contents.replace(search, replace)
     if original_file_contents == new_file_contents:
         fail("Nothing to replace in file '{file_path}'. Aborting since this looks like a misconfiguration or an"
              "inconsistent version in config file.".format(**locals()))
 
-    with open(file_replace_config["path"], "w") as file:
+    with codecs.open(file_replace_config["path"], "w", encoding="utf-8") as file:
         file.write(new_file_contents)
 
 def git_commit(modified_files, current_version, new_version):

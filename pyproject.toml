@@ -12,5 +12,9 @@ path = "README.md"
 search_template = "Current version: {version}"
 
 [[tool.bumpytrack.file_replaces]]
-path = "bumpytrack/bumpytrack.py"
+path = "src/bumpytrack.py"
+search_template = "Version: {version}"
+
+[[tool.bumpytrack.file_replaces]]
+path = "tests/bumpytrack_test.py"
 search_template = "Version: {version}"

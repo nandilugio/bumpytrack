@@ -1,3 +1,5 @@
+import os
+from glob import glob
 import setuptools
 
 with open("README.md", "r") as f:
@@ -18,14 +20,18 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    packages=setuptools.find_packages("src"),
+    package_dir={"": "src"},
+    py_modules=[os.path.splitext(os.path.basename(path))[0] for path in glob("src/*.py")],
+    include_package_data=True,
+    zip_safe=False,
     install_requires=[
         "toml>=0.9.4",
         "subprocess32",
     ],
-    packages=setuptools.find_packages(),
     entry_points={
         "console_scripts": [
-            "bumpytrack = bumpytrack.bumpytrack:commandline_entrypoint",
+            "bumpytrack = bumpytrack:commandline_entrypoint",
         ]
     }
 )

@@ -6,6 +6,11 @@ name = "pypi"
 [dev-packages]
 twine = "*"
 pepython = "*"
+pytest = "*"
+subprocess32 = "*"
+pytest-mock = "*"
+tox = "*"
+tox-pyenv = "*"
 
 [packages]
 bumpytrack = {path = ".",editable = true}

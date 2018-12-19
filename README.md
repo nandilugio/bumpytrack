@@ -1,6 +1,6 @@
 Current version: 1.1.0
 
-Compatible with Python >=2.7
+Compatible with Python >=2.7 and >=3.5
 
 # BumpyTrack
 
@@ -23,7 +23,7 @@ It will:
 
 Now you're free to push, merge to master and deploy!
 
-For the above version string replacements we'll need some config. [This example](https://github.com/nandilugio/bumpytrack/blob/master/pyproject.toml) should be autoexplicative. Save it as `pyproject.toml` in the root of your repository and you're good to go.
+For the above version string replacements we'll need some config. [This example](https://github.com/nandilugio/bumpytrack/blob/master/pyproject.toml) should be autoexplicative. Create a `pyproject.toml` or add your config to the one you already have in the root of your repository and you're good to go.
 
 ## Installation
 
@@ -31,7 +31,7 @@ For the above version string replacements we'll need some config. [This example]
 pip install bumpytrack
 ```
 
-Then add a `pyproject.toml` to the root of your repository and configure it [like this](https://github.com/nandilugio/bumpytrack/blob/master/pyproject.toml).
+Then add a `pyproject.toml` to the root of your repository (if you don't already have it) and configure it [like this](https://github.com/nandilugio/bumpytrack/blob/master/pyproject.toml).
 
 ## Help
 
@@ -45,17 +45,17 @@ Some of the available options:
 
 ```
   --current-version CURRENT_VERSION
-                        Force current version instead using version in config
+                        force current version instead using version in config
                         file.
   --new-version NEW_VERSION
-                        Force new version instead using version in config
+                        force new version instead using version in config
                         file.
   --git-commit          GIT: Commit files with version replacements.
   --no-git-commit
   --git-tag             GIT: Tag this reference with the new version.
   --no-git-tag
   --config-path CONFIG_PATH
-                        Path to config file. Defaults to pyproject.toml in
+                        path to config file. Defaults to pyproject.toml in
                         current directory.
   --verbose
 ```
@@ -85,7 +85,17 @@ To add a _development_ dependency, add it to `Pipfile` via `pipenv install -d <m
 
 This way there's a single source of truth for package definition. No need to repeat the deps in `setup.py` and `Pipfile*`.
 
-Also, dev project tasks are managed using [nandilugio/pepython](https://github.com/nandilugio/pepython). See the tasks defined in [`tasks.py`](https://github.com/nandilugio/bumpytrack/blob/master/tasks.py).
+### Tests
+
+To test the project run [`pytest`](https://docs.pytest.org/) inside the `pipenv`. Once you have something running, run [`tox`](https://tox.readthedocs.io/) to check it's compatible with all python versions supported.
+
+IMPORTANT: in order to make `tox` test with different python versions, those have to be installed. [`pyenv`](https://github.com/pyenv/pyenv) is reccomended for that purpose. [`tox-pyenv`](https://github.com/samstav/tox-pyenv) is installed so it should work out of the box.
+
+### Dev tasks automation and publishing to PyPI
+
+This project uses [`pepython`](https://github.com/nandilugio/pepython) for automation. There you'll find tasks to build and publish the package to PyPI.
+
+Check [the project](https://github.com/nandilugio/pepython) out and the [`tasks.py`](https://github.com/nandilugio/bumpytrack/blob/master/tasks.py) file for more info.
 
 ## License
 

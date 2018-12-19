@@ -24,3 +24,4 @@ def publish():
 def build_and_publish():
     build()
     publish()
+

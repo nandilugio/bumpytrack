@@ -1,0 +1,9 @@
+[tool.bumpytrack]
+current_version = "1.2.3"
+git_commit = false
+git_tag = false
+
+[[tool.bumpytrack.file_replaces]]
+path = "replaceable.txt"
+search_template = "We'll replace this: {version}, utf-8 compatible: áèĩôü."
+

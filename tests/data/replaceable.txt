@@ -1,0 +1,5 @@
+This is a test file containing a replaceable version string.
+
+It is this one: We'll replace this: 1.2.3, utf-8 compatible: áèĩôü. Hi-Ho Let's go!!
+
+Thank you for your understanding :)
