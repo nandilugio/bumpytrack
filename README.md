@@ -1,4 +1,4 @@
-Current version: 1.1.0
+Current version: 1.1.1
 
 Compatible with Python >=2.7 and >=3.5
 

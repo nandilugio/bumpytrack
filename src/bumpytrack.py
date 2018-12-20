@@ -167,7 +167,7 @@ def main(**args):
 def commandline_entrypoint():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--version", action="version", version="Version: 1.1.0")  # Replaced by bumpytrack itself
+    parser.add_argument("--version", action="version", version="Version: 1.1.1")  # Replaced by bumpytrack itself
     parser.add_argument("part", help="version token to bump: major, minor or patch")
     parser.add_argument("--current-version", help="force current version instead using version in config file")
     parser.add_argument("--new-version", help="force new version instead using version in config file")
