@@ -70,7 +70,7 @@ def test_cli_info():
         stderr=subprocess.STDOUT
     )
     assert completed_process.returncode == 0
-    assert completed_process.stdout.strip() == b"Version: 1.1.1"  # Replaced by bumpytrack itself
+    assert completed_process.stdout.strip() == b"Version: 1.1.2"  # Replaced by bumpytrack itself
 
 
 def test_integration(project_context):
