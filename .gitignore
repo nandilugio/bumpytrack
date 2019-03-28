@@ -1,5 +1,6 @@
 build
 dist
+pip-wheel-metadata
 *.egg-info
 *.pyc
 .tox
