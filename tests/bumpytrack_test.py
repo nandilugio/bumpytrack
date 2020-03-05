@@ -94,10 +94,10 @@ def fail_mocking(mocker):
 
 def test_cli_info():
     completed_process = run("bumpytrack -h")
-    assert completed_process.returncode == 0
+    assert "usage:" in completed_process.stdout
 
     completed_process = run("bumpytrack --version")
-    assert completed_process.returncode == 0
+    # Add stdout and stderr not to restrict where the version is actually written
     process_output = completed_process.stdout.strip() + completed_process.stderr.strip()
     assert process_output == b"Version: 1.1.3"  # Replaced by bumpytrack itself
 
@@ -107,11 +107,13 @@ def test_bump_replaces_version_in_files(project_context):
         completed_process = run(
             "bumpytrack minor --no-git-commit --no-git-tag --config-path " + project_context["config_path"]
         )
-        assert completed_process.returncode == 0
         assert completed_process.stdout.strip() == \
                b"Current version: '1.2.3'\n" \
                b"New version: '1.3.0'\n" \
                b"Replacing version srting in files"
+        with open(project_context["config_path"], "rb") as f:
+            config_file_contents = f.read()
+            assert b"1.3.0" in config_file_contents
         with open(project_context["replaceable_file_path"], "rb") as f:
             replaceable_file_contents = f.read()
             assert b"1.3.0" in replaceable_file_contents
@@ -120,23 +122,47 @@ def test_bump_replaces_version_in_files(project_context):
 
 def test_bump_commits_and_tags_repo(project_context):
     with cwd_at(project_context["project_path"]):
-        completed_process = run(
-            "bumpytrack patch --git-commit --git-tag --config-path " + project_context["config_path"]
-        )
-        assert completed_process.returncode == 0
+        completed_process = run("git log --oneline")
+        assert b"Bumping version" not in completed_process.stdout
+
+        run("bumpytrack patch --git-commit --git-tag --config-path " + project_context["config_path"])
 
         completed_process = run("git log --oneline")
-        assert completed_process.returncode == 0
         assert b"Bumping version: 1.2.3 \xe2\x86\x92 1.2.4" in completed_process.stdout  # UTF-8 for "→"
 
         completed_process = run("git describe --tags --abbrev=0")
-        assert completed_process.returncode == 0
         assert completed_process.stdout.strip() == b"v1.2.4"
 
 
-@pytest.mark.skip
-def test_reverts_latest_bump_and_nothing_else(project_context):
-    pass
+def test_undo_removes_latest_bump_and_nothing_else(project_context):
+    with cwd_at(project_context["project_path"]):
+
+        # Build previous state, containing other bumps
+        run("bumpytrack major --git-commit --git-tag --config-path " + project_context["config_path"])  # Bumps to 2.0.0
+        with open(project_context["source_file_path"], "w") as f: f.write("New source line.")
+        run("git add .")
+        run("git commit -m 'Some changes...'")
+
+        # Remember the state we want to be in after we undo
+        git_log_before_last_bump = run("git log --oneline").stdout
+        git_tags_before_last_bump = run("git tag").stdout
+        cat_project_before_last_bump = run("cat ./*").stdout
+
+        # Bump we want to undo
+        run("bumpytrack minor --git-commit --git-tag --config-path " + project_context["config_path"])  # Bumps to 2.1.0
+
+        # Assert there are changes in git and in the files
+        assert run("git log --oneline").stdout != git_log_before_last_bump
+        assert run("git tag").stdout != git_tags_before_last_bump
+        assert run("cat ./*").stdout != cat_project_before_last_bump
+
+        # Undo!
+        run("bumpytrack undo --git-commit --git-tag --config-path " + project_context["config_path"])
+
+        # Assert undo was ok and we're in the same situation as before last bump
+        assert run("git log --oneline").stdout == git_log_before_last_bump
+        assert run("git tag").stdout == git_tags_before_last_bump
+        assert run("cat ./*").stdout == cat_project_before_last_bump
 
 
 # Unit Tests ###################################################################
@@ -146,7 +172,7 @@ def test_version_incrementing(fail_mocking):
     fail_mock, stopping_at_fail = fail_mocking
 
     fail_mock.assert_not_called()
-    stopping_at_fail(bumpytrack.increment_version)("1.2.3", "invalid_part")
+    stopping_at_fail(bumpytrack.increment_version)("1.2.3", "not_a_valid_part")
     fail_mock.assert_called_once_with("Part should be one of: major, minor or patch.")
 
     assert stopping_at_fail(bumpytrack.increment_version)("1.2.3", "major") == "2.0.0"
