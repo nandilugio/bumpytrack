@@ -13,7 +13,7 @@ else:
     import subprocess
 
 
-# Logging
+# Logging ######################################################################
 
 class Logger(object):
     def set_verbose(self,verbose=True):
@@ -30,7 +30,7 @@ class Logger(object):
 logger = Logger()
 
 
-# System
+# System #######################################################################
 
 def fail(message):
     logger.log(message)
@@ -45,7 +45,7 @@ def run_command(command_tokens):
         fail("Failed to execute '{command}'. Output was:\n\n{output}\n".format(**locals()))
 
 
-# SemVer
+# SemVer #######################################################################
 
 def parse_version(version):
     try:
@@ -78,7 +78,7 @@ def increment_version(current_version, part):
     return version_tokens_to_str(new_version_tokens)
 
 
-# App Tasks
+# Low-level task helpers #######################################################
 
 def file_replace(file_replace_config, current_version, new_version):
     file_path = file_replace_config["path"]
@@ -117,17 +117,9 @@ def git_tag(new_version):
     run_command(["git", "tag", tag])
 
 
-def main(**args):
-    logger.set_verbose(args.get("verbose"))
+# High-level tasks / use-cases #################################################
 
-    # Load config
-    config_path = args.get("config_path") or "pyproject.toml"
-    try:
-        pyproject_toml = toml.load(config_path)
-        config = pyproject_toml.get("tool", {}).get("bumpytrack", {})
-    except RuntimeError:
-        fail("Failed to load config file at '{config_path}'.")
-
+def do_bump(args, config, config_path):
     # Get current version
     current_version = args.get("current_version") or config.get("current_version")
     if not current_version:
@@ -137,8 +129,8 @@ def main(**args):
     # Get new version
     if args.get("new_version"):
         new_version = args.get("new_version")
-    elif args.get("part"):
-        new_version = increment_version(current_version, args.get("part"))
+    elif args.get("command"):  # We're now bumping, so command is the version "part" to bump
+        new_version = increment_version(current_version, args.get("command"))
     else:
         fail("No way to obtain a new version")
     logger.log("New version: '{new_version}'".format(**locals()))
@@ -164,16 +156,45 @@ def main(**args):
         git_tag(new_version)
 
 
+def do_undo(args, config, config_path):
+    raise NotImplementedError
+
+
+# Entrypoints ##################################################################
+
+def load_config(config_path):
+    config = None
+    try:
+        pyproject_toml = toml.load(config_path)
+        config = pyproject_toml.get("tool", {}).get("bumpytrack", {})
+    except RuntimeError:
+        fail("Failed to load config file at '{config_path}'.")
+    return config
+
+
+def main(**args):
+    logger.set_verbose(args.get("verbose"))
+
+    # Load config
+    config_path = args.get("config_path") or "pyproject.toml"
+    config = load_config(config_path)
+
+    if args.get("command") == "undo":
+        do_undo(args, config, config_path)
+    else:
+        do_bump(args, config, config_path)
+
+
 def commandline_entrypoint():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--version", action="version", version="Version: 1.1.3")  # Replaced by bumpytrack itself
-    parser.add_argument("part", help="version token to bump: major, minor or patch")
+    parser.add_argument("command", help="version token to bump ('major', 'minor' or 'patch') or 'undo' to remove any changes from Git")
     parser.add_argument("--current-version", help="force current version instead using version in config file")
     parser.add_argument("--new-version", help="force new version instead using version in config file")
-    parser.add_argument("--git-commit", dest="git_commit", action="store_true", default=None, help="GIT: Commit files with version replacements")
+    parser.add_argument("--git-commit", dest="git_commit", action="store_true", default=None, help="Git: Commit files with version replacements")
     parser.add_argument("--no-git-commit", dest="git_commit", action="store_false", default=None)
-    parser.add_argument("--git-tag", dest="git_tag", action="store_true", default=None, help="GIT: Tag this reference with the new version")
+    parser.add_argument("--git-tag", dest="git_tag", action="store_true", default=None, help="Git: Tag this reference with the new version")
     parser.add_argument("--no-git-tag", dest="git_tag", action="store_false", default=None)
     parser.add_argument("--config-path", help="path to config file. Defaults to pyproject.toml in current directory")
     parser.add_argument("--verbose", action="store_true")
