@@ -183,13 +183,13 @@ def do_bump(args, config, config_path):
         modified_files.append(file_path)
 
     # Git commit file changes
-    git_commit_requested = args.get("git_commit", config.get("git_commit"))
+    git_commit_requested = args.get("git_commit", config.get("git_commit", False))
     if git_commit_requested:
         logger.log("Committing changes to GIT")
         git_bump_commit(modified_files, current_version, new_version)
 
     # Git tag new version
-    git_tag_requested = args.get("git_tag", config.get("git_tag"))
+    git_tag_requested = args.get("git_tag", config.get("git_tag", False))
     if git_tag_requested:
         logger.log("Adding version tag to GIT")
         git_bump_tag(new_version)
