@@ -176,7 +176,6 @@ def do_bump(args, config, config_path):
         logger.log("Adding version tag to GIT")
         git_bump_tag(new_version)
 
-
 def do_git_undo(args, config, config_path):
     # Get current version
     current_version = args.get("current_version") or config.get("current_version")
