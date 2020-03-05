@@ -42,18 +42,20 @@ def run(command):
 @pytest.fixture
 def project_context(tmpdir):
     project_path = tmpdir
-    config_path = str(project_path.join("pyproject.toml"))
-    replaceable_file_path = str(project_path.join("replaceable.txt"))
-    source_file_path = str(project_path.join("source.txt"))
-    shutil.copyfile("tests/data/integration_tests_pyproject.toml", config_path)
-    shutil.copyfile("tests/data/replaceable.txt", replaceable_file_path)
-    shutil.copyfile("tests/data/source.txt", source_file_path)
+
+    config_path_str = str(project_path.join("pyproject.toml"))
+    replaceable_file_path_str = str(project_path.join("replaceable.txt"))
+    source_file_path_str = str(project_path.join("source.txt"))
+
+    shutil.copyfile("tests/data/integration_tests_pyproject.toml", config_path_str)
+    shutil.copyfile("tests/data/replaceable.txt", replaceable_file_path_str)
+    shutil.copyfile("tests/data/source.txt", source_file_path_str)
 
     return {
-        "project_path": project_path,
-        "config_path": config_path,
-        "replaceable_file_path": replaceable_file_path,
-        "source_file_path": source_file_path,
+        "project_path": str(project_path),
+        "config_path": config_path_str,
+        "replaceable_file_path": replaceable_file_path_str,
+        "source_file_path": source_file_path_str,
     }
 
 
@@ -86,7 +88,8 @@ def test_cli_info():
 
     completed_process = run("bumpytrack --version")
     assert completed_process.returncode == 0
-    assert completed_process.stdout.strip() == b"Version: 1.1.3"  # Replaced by bumpytrack itself
+    process_output = completed_process.stdout.strip() + completed_process.stderr.strip()
+    assert process_output == b"Version: 1.1.3"  # Replaced by bumpytrack itself
 
 
 def test_bump_replaces_version_in_files(project_context):
