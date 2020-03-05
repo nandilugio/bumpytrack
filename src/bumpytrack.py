@@ -15,26 +15,33 @@ else:
 
 # Logging ######################################################################
 
+
 class Logger(object):
     def set_verbose(self,verbose=True):
         self._verbose = verbose
 
-    def log(self, message):
+    @staticmethod
+    def log(message):
         print(message)
 
+    @staticmethod
+    def error(message):
+        print(message, file=sys.stderr)
+
     def log_verbose(self, message):
-        if not self._verbose:
-            return
-        self.log(message)
+        if self._verbose:
+            self.log(message)
 
 logger = Logger()
 
 
 # System #######################################################################
 
+
 def fail(message):
-    logger.log(message)
+    logger.error(message)
     exit(1)
+
 
 def run_command(command_tokens, allow_failures=False):
     completed_process = subprocess.run(command_tokens, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -54,6 +61,7 @@ def run_command(command_tokens, allow_failures=False):
 
 # SemVer #######################################################################
 
+
 def parse_version(version):
     try:
         str_tokens = version.split(".")
@@ -67,8 +75,10 @@ def parse_version(version):
 
     return int_tokens
 
+
 def version_tokens_to_str(int_tokens):
     return ".".join(str(int_token) for int_token in int_tokens)
+
 
 def increment_version(current_version, part):
     current_version_tokens = parse_version(current_version)
@@ -86,6 +96,7 @@ def increment_version(current_version, part):
 
 
 # Low-level task helpers #######################################################
+
 
 def file_replace(file_replace_config, current_version, new_version):
     file_path = file_replace_config["path"]
@@ -111,12 +122,14 @@ def file_replace(file_replace_config, current_version, new_version):
     with codecs.open(file_replace_config["path"], "w", encoding="utf-8") as file:
         file.write(new_file_contents)
 
+
 def git_bump_commit(modified_files, current_version, new_version):
     # TODO: make git path configurable
     commit_message = u"Bumping version: {current_version} → {new_version}".format(**locals())
     run_command(["git", "reset", "HEAD"])
     run_command(["git", "add"] + modified_files)
     run_command(["git", "commit", "-m", commit_message])
+
 
 def git_undo_bump_commit(bumped_version):
     last_commit_message = run_command(["git", "log", "-1", "--pretty=%B"])
@@ -127,10 +140,12 @@ def git_undo_bump_commit(bumped_version):
     commit_undone, _out = run_command(["git", "reset", "--hard", "HEAD~1"], allow_failures=True)
     return commit_undone
 
+
 def git_bump_tag(new_version):
     # TODO: make this format configurable
     tag = "v{new_version}".format(**locals())
     run_command(["git", "tag", tag])
+
 
 def git_undo_bump_tag(bumped_version):
     tag = "v{bumped_version}".format(**locals())
@@ -139,6 +154,7 @@ def git_undo_bump_tag(bumped_version):
 
 
 # High-level tasks / use-cases #################################################
+
 
 def do_bump(args, config, config_path):
     # Get current version
@@ -167,14 +183,17 @@ def do_bump(args, config, config_path):
         modified_files.append(file_path)
 
     # Git commit file changes
-    if args.get("git_commit") if args.get("git_commit") is not None else config.get("git_commit"):
+    git_commit_requested = args.get("git_commit", config.get("git_commit"))
+    if git_commit_requested:
         logger.log("Committing changes to GIT")
         git_bump_commit(modified_files, current_version, new_version)
 
     # Git tag new version
-    if args.get("git_tag") if args.get("git_tag") is not None else config.get("git_tag"):
+    git_tag_requested = args.get("git_tag", config.get("git_tag"))
+    if git_tag_requested:
         logger.log("Adding version tag to GIT")
         git_bump_tag(new_version)
+
 
 def do_git_undo(args, config, config_path):
     # Get current version
@@ -183,16 +202,22 @@ def do_git_undo(args, config, config_path):
         fail("No way to obtain current version")
     logger.log("Undoing bump to version: '{current_version}'".format(**locals()))
 
-    if not git_undo_bump_commit(current_version):
-        fail("Couldn't undo bump commit. Aborting!")
+    # Undo bump git commit
+    bump_commit_undone = git_undo_bump_commit(current_version)
+    if not bump_commit_undone:
+        fail("Can only undo bumps corresponding to the most recent commit. Aborting!")
     logger.log("Bump commit undone")
 
-    if not git_undo_bump_tag(current_version):
-        fail("Couldn't undo bump tag. Aborting!")
-    logger.log("Bump tag removed")
+    # Undo bump git tag
+    bump_tag_undone = git_undo_bump_tag(current_version)
+    if bump_tag_undone:
+        logger.log("Bump tag removed")
+    else:
+        logger.error("Couldn't undo bump tag")
 
 
 # Entrypoints and bootstrapping ################################################
+
 
 def load_config(config_path):
     config = None
@@ -203,18 +228,20 @@ def load_config(config_path):
         fail("Failed to load config file at '{config_path}'.")
     return config
 
+
 def dispatch(args, config, config_path):
     if args.get("command") == "git-undo":
         do_git_undo(args, config, config_path)
     else:
         do_bump(args, config, config_path)
 
+
 def commandline_entrypoint():
     # Parse args
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--version", action="version", version="Version: 1.1.3")  # Replaced by bumpytrack itself
-    parser.add_argument("command", help="version token to bump ('major', 'minor' or 'patch') or 'git-undo' to remove any changes from Git")
+    parser.add_argument("command", help="version token to bump ('major', 'minor' or 'patch') or 'git-undo' to remove last bump commit and tag")
     parser.add_argument("--current-version", help="force current version instead using version in config file")
     parser.add_argument("--new-version", help="force new version instead using version in config file")
     parser.add_argument("--git-commit", dest="git_commit", action="store_true", default=None, help="Git: Commit files with version replacements")
