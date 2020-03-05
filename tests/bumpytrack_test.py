@@ -134,7 +134,7 @@ def test_bump_commits_and_tags_repo(project_context):
         assert completed_process.stdout.strip() == b"v1.2.4"
 
 
-def test_undo_removes_latest_bump_and_nothing_else(project_context):
+def test_git_undo_removes_latest_bump_and_nothing_else(project_context):
     with cwd_at(project_context["project_path"]):
 
         # Build previous state, containing other bumps
@@ -157,7 +157,7 @@ def test_undo_removes_latest_bump_and_nothing_else(project_context):
         assert run("cat ./*").stdout != cat_project_before_last_bump
 
         # Undo!
-        run("bumpytrack undo --git-commit --git-tag --config-path " + project_context["config_path"])
+        run("bumpytrack git-undo --config-path " + project_context["config_path"])
 
         # Assert undo was ok and we're in the same situation as before last bump
         assert run("git log --oneline").stdout == git_log_before_last_bump

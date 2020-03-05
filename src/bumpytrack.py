@@ -36,13 +36,20 @@ def fail(message):
     logger.log(message)
     exit(1)
 
-def run_command(command_tokens):
+def run_command(command_tokens, allow_failures=False):
     completed_process = subprocess.run(command_tokens, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    failed = completed_process.returncode != 0
+    output = completed_process.stdout.strip().decode('utf-8')  # Contains both stdout and stderr
 
-    if completed_process.returncode != 0:
+    if failed and not allow_failures:
         command = " ".join(command_tokens)
-        output = completed_process.stdout.decode('utf-8')
         fail("Failed to execute '{command}'. Output was:\n\n{output}\n".format(**locals()))
+
+    if allow_failures:
+        ok = not failed
+        return ok, output
+    else:
+        return output
 
 
 # SemVer #######################################################################
@@ -104,17 +111,31 @@ def file_replace(file_replace_config, current_version, new_version):
     with codecs.open(file_replace_config["path"], "w", encoding="utf-8") as file:
         file.write(new_file_contents)
 
-def git_commit(modified_files, current_version, new_version):
+def git_bump_commit(modified_files, current_version, new_version):
     # TODO: make git path configurable
     commit_message = u"Bumping version: {current_version} → {new_version}".format(**locals())
     run_command(["git", "reset", "HEAD"])
     run_command(["git", "add"] + modified_files)
     run_command(["git", "commit", "-m", commit_message])
 
-def git_tag(new_version):
+def git_undo_bump_commit(bumped_version):
+    last_commit_message = run_command(["git", "log", "-1", "--pretty=%B"])
+    is_bump = last_commit_message.startswith("Bumping version: ")
+    bumps_to_expected_version = last_commit_message.endswith(bumped_version)
+    if not (is_bump and bumps_to_expected_version):
+        return False
+    commit_undone, _out = run_command(["git", "reset", "--hard", "HEAD~1"], allow_failures=True)
+    return commit_undone
+
+def git_bump_tag(new_version):
     # TODO: make this format configurable
     tag = "v{new_version}".format(**locals())
     run_command(["git", "tag", tag])
+
+def git_undo_bump_tag(bumped_version):
+    tag = "v{bumped_version}".format(**locals())
+    tag_deleted, _out = run_command(["git", "tag", "-d", tag], allow_failures=True)
+    return tag_deleted
 
 
 # High-level tasks / use-cases #################################################
@@ -148,19 +169,31 @@ def do_bump(args, config, config_path):
     # Git commit file changes
     if args.get("git_commit") if args.get("git_commit") is not None else config.get("git_commit"):
         logger.log("Committing changes to GIT")
-        git_commit(modified_files, current_version, new_version)
+        git_bump_commit(modified_files, current_version, new_version)
 
     # Git tag new version
     if args.get("git_tag") if args.get("git_tag") is not None else config.get("git_tag"):
         logger.log("Adding version tag to GIT")
-        git_tag(new_version)
+        git_bump_tag(new_version)
 
 
-def do_undo(args, config, config_path):
-    raise NotImplementedError
+def do_git_undo(args, config, config_path):
+    # Get current version
+    current_version = args.get("current_version") or config.get("current_version")
+    if not current_version:
+        fail("No way to obtain current version")
+    logger.log("Undoing bump to version: '{current_version}'".format(**locals()))
+
+    if not git_undo_bump_commit(current_version):
+        fail("Couldn't undo bump commit. Aborting!")
+    logger.log("Bump commit undone")
+
+    if not git_undo_bump_tag(current_version):
+        fail("Couldn't undo bump tag. Aborting!")
+    logger.log("Bump tag removed")
 
 
-# Entrypoints ##################################################################
+# Entrypoints and bootstrapping ################################################
 
 def load_config(config_path):
     config = None
@@ -171,25 +204,18 @@ def load_config(config_path):
         fail("Failed to load config file at '{config_path}'.")
     return config
 
-
-def main(**args):
-    logger.set_verbose(args.get("verbose"))
-
-    # Load config
-    config_path = args.get("config_path") or "pyproject.toml"
-    config = load_config(config_path)
-
-    if args.get("command") == "undo":
-        do_undo(args, config, config_path)
+def dispatch(args, config, config_path):
+    if args.get("command") == "git-undo":
+        do_git_undo(args, config, config_path)
     else:
         do_bump(args, config, config_path)
 
-
 def commandline_entrypoint():
+    # Parse args
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("--version", action="version", version="Version: 1.1.3")  # Replaced by bumpytrack itself
-    parser.add_argument("command", help="version token to bump ('major', 'minor' or 'patch') or 'undo' to remove any changes from Git")
+    parser.add_argument("command", help="version token to bump ('major', 'minor' or 'patch') or 'git-undo' to remove any changes from Git")
     parser.add_argument("--current-version", help="force current version instead using version in config file")
     parser.add_argument("--new-version", help="force new version instead using version in config file")
     parser.add_argument("--git-commit", dest="git_commit", action="store_true", default=None, help="Git: Commit files with version replacements")
@@ -201,9 +227,13 @@ def commandline_entrypoint():
     args_namespace = parser.parse_args()
     args = vars(args_namespace)
 
-    main(**args)
+    # Bootstrap
+    logger.set_verbose(args.get("verbose"))
+    config_path = args.get("config_path") or "pyproject.toml"
+    config = load_config(config_path)
+
+    dispatch(args, config, config_path)
 
 
 if __name__ == "__main__":
     commandline_entrypoint()
-
