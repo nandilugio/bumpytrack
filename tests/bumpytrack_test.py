@@ -134,6 +134,99 @@ def test_bump_commits_and_tags_repo(project_context):
         assert completed_process.stdout.strip() == b"v1.2.4"
 
 
+def test_git_undo_removes_latest_bump_and_nothing_else(project_context):
+    with cwd_at(project_context["project_path"]):
+
+        # Build previous state, containing other bumps
+        run("bumpytrack major --git-commit --git-tag --config-path " + project_context["config_path"])  # Bumps to 2.0.0
+        with open(project_context["source_file_path"], "w") as f: f.write("New source line.")
+        run("git add .")
+        run("git commit -m 'Some changes...'")
+
+        # Remember the state we want to be in after we undo
+        git_log_before_last_bump = run("git log --oneline").stdout
+        git_tags_before_last_bump = run("git tag").stdout
+        cat_project_before_last_bump = run("cat ./*").stdout
+
+        # Bump we want to undo
+        run("bumpytrack minor --git-commit --git-tag --config-path " + project_context["config_path"])  # Bumps to 2.1.0
+
+        # Assert there are changes in git and in the files
+        assert run("git log --oneline").stdout != git_log_before_last_bump
+        assert run("git tag").stdout != git_tags_before_last_bump
+        assert run("cat ./*").stdout != cat_project_before_last_bump
+
+        # Undo!
+        completed_process = run("bumpytrack git-undo --config-path " + project_context["config_path"])
+
+        # Assert undo was ok and we're in the same situation as before last bump
+        assert completed_process.stdout.strip() == \
+               b"Undoing bump to version: '2.1.0'\n" \
+               b"Bump commit undone\n" \
+               b"Bump tag removed"
+        assert run("git log --oneline").stdout == git_log_before_last_bump
+        assert run("git tag").stdout == git_tags_before_last_bump
+        assert run("cat ./*").stdout == cat_project_before_last_bump
+
+        # Try undoing again
+        completed_process = run("bumpytrack git-undo --config-path " + project_context["config_path"], assert_success=False)
+
+        # Assert undo didn't take effect and we're still in the same situation as before last bump
+        assert completed_process.returncode != 0
+        assert completed_process.stdout.strip() == b"Undoing bump to version: '2.0.0'"
+        assert completed_process.stderr.strip() == b"Can only undo bumps corresponding to the most recent commit. Aborting!"
+        assert run("git log --oneline").stdout == git_log_before_last_bump
+        assert run("git tag").stdout == git_tags_before_last_bump
+        assert run("cat ./*").stdout == cat_project_before_last_bump
+
+
+def test_git_undo_removes_latest_bump_commit_or_tag_separately(project_context):
+    with cwd_at(project_context["project_path"]):
+
+        # Build previous state, containing other bumps
+        run("bumpytrack patch --git-commit --git-tag --config-path " + project_context["config_path"])  # Bumps to 1.2.4
+        with open(project_context["source_file_path"], "w") as f: f.write("New source line.")
+        run("git add .")
+        run("git commit -m 'Some changes...'")
+
+        # Remember the state we want to be in after we undo
+        git_log_before_last_bump = run("git log --oneline").stdout
+        git_tags_before_last_bump = run("git tag").stdout
+        cat_project_before_last_bump = run("cat ./*").stdout
+
+        # Bump we want to undo: only commit
+        run("bumpytrack minor --git-commit --config-path " + project_context["config_path"])  # Bumps to 1.3.0
+
+        # Assert there are changes in git log and in the files...
+        assert run("git log --oneline").stdout != git_log_before_last_bump
+        assert run("cat ./*").stdout != cat_project_before_last_bump
+
+        # ...but not in the git tags
+        assert run("git tag").stdout == git_tags_before_last_bump
+
+        # Undo!
+        completed_process = run("bumpytrack git-undo --config-path " + project_context["config_path"])
+
+        # Assert undo was ok and we're in the same situation as before last bump
+        assert completed_process.stdout.strip() == \
+               b"Undoing bump to version: '1.3.0'\n" \
+               b"Bump commit undone"
+        assert run("git log --oneline").stdout == git_log_before_last_bump
+        assert run("git tag").stdout == git_tags_before_last_bump
+        assert run("cat ./*").stdout == cat_project_before_last_bump
+
+        # Try undoing again
+        completed_process = run("bumpytrack git-undo --config-path " + project_context["config_path"], assert_success=False)
+
+        # Assert undo didn't take effect and we're still in the same situation as before last bump
+        assert completed_process.returncode != 0
+        assert completed_process.stdout.strip() == b"Undoing bump to version: '1.2.4'"
+        assert completed_process.stderr.strip() == b"Can only undo bumps corresponding to the most recent commit. Aborting!"
+        assert run("git log --oneline").stdout == git_log_before_last_bump
+        assert run("git tag").stdout == git_tags_before_last_bump
+        assert run("cat ./*").stdout == cat_project_before_last_bump
+
+
 # Unit Tests ###################################################################
 
 

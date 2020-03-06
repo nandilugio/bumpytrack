@@ -18,10 +18,16 @@ bumpytrack minor  # or major if you have breaking changes, or patch if it's a si
 
 It will:
 - Replace the version string in all relevant files (see config below).
-- Commit those changes to GIT, taking care not to commit anything else.
-- Create a GIT tag for this new version.
+- Commit those changes to GIT, taking care not to commit anything else (can be omitted).
+- Create a GIT tag for this new version (can be omitted).
 
 Now you're free to push, merge to master and deploy!
+
+Unless you forgot something or bumped by mistake of course, in which case you can just undo the commit and tag created in Git by doing:
+
+```bash
+bumpytrack git-undo
+```
 
 For the above version string replacements we'll need some config. [This example](https://github.com/nandilugio/bumpytrack/blob/master/pyproject.toml) should be autoexplicative. Create a `pyproject.toml` or add your config to the one you already have in the root of your repository and you're good to go.
 
@@ -46,17 +52,16 @@ Some of the available options:
 ```
   --current-version CURRENT_VERSION
                         force current version instead using version in config
-                        file.
+                        file
   --new-version NEW_VERSION
-                        force new version instead using version in config
-                        file.
-  --git-commit          GIT: Commit files with version replacements.
+                        force new version instead using version in config file
+  --git-commit          Git: Commit files with version replacements
   --no-git-commit
-  --git-tag             GIT: Tag this reference with the new version.
+  --git-tag             Git: Tag this reference with the new version
   --no-git-tag
   --config-path CONFIG_PATH
                         path to config file. Defaults to pyproject.toml in
-                        current directory.
+                        current directory
   --verbose
 ```
 

@@ -131,12 +131,26 @@ def git_bump_commit(modified_files, current_version, new_version):
     run_command(["git", "commit", "-m", commit_message])
 
 
+def git_undo_bump_commit(bumped_version):
+    last_commit_message = run_command(["git", "log", "-1", "--pretty=%B"])
+    is_bump = last_commit_message.startswith("Bumping version: ")
+    bumps_to_expected_version = last_commit_message.endswith(bumped_version)
+    if not (is_bump and bumps_to_expected_version):
+        return False
+    commit_undone, _out = run_command(["git", "reset", "--hard", "HEAD~1"], allow_failures=True)
+    return commit_undone
+
+
 def git_bump_tag(new_version):
     # TODO: make this format configurable
     tag = "v{new_version}".format(**locals())
     run_command(["git", "tag", tag])
 
 
+def git_undo_bump_tag(bumped_version):
+    tag = "v{bumped_version}".format(**locals())
+    tag_deleted, _out = run_command(["git", "tag", "-d", tag], allow_failures=True)
+    return tag_deleted
 
 
 # High-level tasks / use-cases #################################################
@@ -179,6 +193,27 @@ def do_bump(args, config, config_path):
     if git_tag_requested:
         logger.log("Adding version tag to GIT")
         git_bump_tag(new_version)
+
+
+def do_git_undo(args, config, config_path):
+    # Get current version
+    current_version = args.get("current_version") or config.get("current_version")
+    if not current_version:
+        fail("No way to obtain current version")
+    logger.log("Undoing bump to version: '{current_version}'".format(**locals()))
+
+    # Undo bump git commit
+    bump_commit_undone = git_undo_bump_commit(current_version)
+    if not bump_commit_undone:
+        fail("Can only undo bumps corresponding to the most recent commit. Aborting!")
+    logger.log("Bump commit undone")
+
+    # Undo bump git tag
+    bump_tag_undone = git_undo_bump_tag(current_version)
+    if bump_tag_undone:
+        logger.log("Bump tag removed")
+    else:
+        logger.error("Couldn't undo bump tag")
 
 
 # Entrypoints and bootstrapping ################################################
