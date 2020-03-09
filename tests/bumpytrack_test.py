@@ -54,11 +54,20 @@ def project_context(tmpdir):
 
     shutil.copyfile("tests/data/integration_tests_pyproject.toml", config_path_str)
     shutil.copyfile("tests/data/replaceable.txt", replaceable_file_path_str)
+    shutil.copyfile("tests/data/source.txt", source_file_path_str)
+
+    with cwd_at(project_path_str):
+        run("git init")
+        run("git config user.email 'test@test.test'")
+        run("git config user.name test")
+        run("git add .")
+        run("git commit -m 'Initial commit.'")
 
     return {
         "project_path": project_path_str,
         "config_path": config_path_str,
         "replaceable_file_path": replaceable_file_path_str,
+        "source_file_path": source_file_path_str,
     }
 
 
@@ -113,12 +122,30 @@ def test_bump_replaces_version_in_files(project_context):
             assert b"\xc3\xa1\xc3\xa8\xc4\xa9\xc3\xb4\xc3\xbc" in replaceable_file_contents  # UTF-8 for "áèĩôü"
 
 
+def test_bump_commits_and_tags_repo(project_context):
+    with cwd_at(project_context["project_path"]):
+        completed_process = run("git log --oneline")
+        assert b"Bumping version" not in completed_process.stdout
+
+        run("bumpytrack patch --git-commit --git-tag --config-path " + project_context["config_path"])
+
+        completed_process = run("git log --oneline")
+        assert b"Bumping version: 1.2.3 \xe2\x86\x92 1.2.4" in completed_process.stdout  # UTF-8 for "→"
+
+        completed_process = run("git describe --tags --abbrev=0")
+        assert completed_process.stdout.strip() == b"v1.2.4"
+
+
 # Unit Tests ###################################################################
 
 
 def test_version_incrementing(fail_mocking):
     fail_mock, stopping_at_fail = fail_mocking
-    
+
+    fail_mock.assert_not_called()
+    stopping_at_fail(bumpytrack.increment_version)("1.2.3", "not_a_valid_part")
+    fail_mock.assert_called_once_with("Part should be one of: major, minor or patch.")
+
     assert stopping_at_fail(bumpytrack.increment_version)("1.2.3", "major") == "2.0.0"
     assert stopping_at_fail(bumpytrack.increment_version)("1.2.3", "minor") == "1.3.0"
     assert stopping_at_fail(bumpytrack.increment_version)("1.2.3", "patch") == "1.2.4"
