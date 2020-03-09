@@ -46,17 +46,16 @@ Some of the available options:
 ```
   --current-version CURRENT_VERSION
                         force current version instead using version in config
-                        file.
+                        file
   --new-version NEW_VERSION
-                        force new version instead using version in config
-                        file.
-  --git-commit          GIT: Commit files with version replacements.
+                        force new version instead using version in config file
+  --git-commit          Git: Commit files with version replacements
   --no-git-commit
-  --git-tag             GIT: Tag this reference with the new version.
+  --git-tag             Git: Tag this reference with the new version
   --no-git-tag
   --config-path CONFIG_PATH
                         path to config file. Defaults to pyproject.toml in
-                        current directory.
+                        current directory
   --verbose
 ```
 

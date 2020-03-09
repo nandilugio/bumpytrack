@@ -17,12 +17,18 @@ import six
 import bumpytrack
 
 
+# Utils ########################################################################
+
+
 @contextlib.contextmanager
 def cwd_at(path):
     original_wd = os.getcwd()
     os.chdir(path)
     try: yield
     finally: os.chdir(original_wd)
+
+
+# Fixtures #####################################################################
 
 
 @pytest.fixture
@@ -60,6 +66,9 @@ def fail_mocking(mocker):
     return (fail_mock, stopping_at_fail)
 
 
+# Feature/Integration Tests ####################################################
+
+
 def test_cli_info():
     completed_process = subprocess.run(["bumpytrack", "-h"])
     assert completed_process.returncode == 0
@@ -93,6 +102,9 @@ def test_integration(project_context):
             replaceable_file_contents = f.read()
             assert b"1.3.0" in replaceable_file_contents
             assert b"\xc3\xa1\xc3\xa8\xc4\xa9\xc3\xb4\xc3\xbc" in replaceable_file_contents  # UTF-8 for áèĩôü
+
+
+# Unit Tests ###################################################################
 
 
 def test_version_incrementing(fail_mocking):

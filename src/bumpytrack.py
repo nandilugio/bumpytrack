@@ -13,7 +13,8 @@ else:
     import subprocess
 
 
-# Logging
+# Logging ######################################################################
+
 
 class Logger(object):
     def set_verbose(self,verbose=True):
@@ -30,7 +31,8 @@ class Logger(object):
 logger = Logger()
 
 
-# System
+# System #######################################################################
+
 
 def fail(message):
     logger.log(message)
@@ -45,7 +47,8 @@ def run_command(command_tokens):
         fail("Failed to execute '{command}'. Output was:\n\n{output}\n".format(**locals()))
 
 
-# SemVer
+# SemVer #######################################################################
+
 
 def parse_version(version):
     try:
@@ -60,8 +63,10 @@ def parse_version(version):
 
     return int_tokens
 
+
 def version_tokens_to_str(int_tokens):
     return ".".join(str(int_token) for int_token in int_tokens)
+
 
 def increment_version(current_version, part):
     current_version_tokens = parse_version(current_version)
@@ -78,7 +83,8 @@ def increment_version(current_version, part):
     return version_tokens_to_str(new_version_tokens)
 
 
-# App Tasks
+# Low-level task helpers #######################################################
+
 
 def file_replace(file_replace_config, current_version, new_version):
     file_path = file_replace_config["path"]
@@ -127,6 +133,9 @@ def main(**args):
         config = pyproject_toml.get("tool", {}).get("bumpytrack", {})
     except RuntimeError:
         fail("Failed to load config file at '{config_path}'.")
+
+# High-level tasks / use-cases #################################################
+
 
     # Get current version
     current_version = args.get("current_version") or config.get("current_version")
@@ -185,4 +194,3 @@ def commandline_entrypoint():
 
 if __name__ == "__main__":
     commandline_entrypoint()
-
