@@ -20,13 +20,17 @@ class Logger(object):
     def set_verbose(self,verbose=True):
         self._verbose = verbose
 
-    def log(self, message):
+    @staticmethod
+    def log(message):
         print(message)
 
+    @staticmethod
+    def error(message):
+        print(message, file=sys.stderr)
+
     def log_verbose(self, message):
-        if not self._verbose:
-            return
-        self.log(message)
+        if self._verbose:
+            self.log(message)
 
 logger = Logger()
 
@@ -35,7 +39,7 @@ logger = Logger()
 
 
 def fail(message):
-    logger.log(message)
+    logger.error(message)
     exit(1)
 
 def run_command(command_tokens):
