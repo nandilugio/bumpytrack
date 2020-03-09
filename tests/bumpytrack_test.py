@@ -58,8 +58,11 @@ def project_context(tmpdir):
 
     with cwd_at(project_path_str):
         run("git init")
+        run("git config user.email 'test@test.test'")
+        run("git config user.name test")
         run("git add .")
-        run("git commit -m 'Initial commit.'")
+        x = run("git commit -m 'Initial commit.'", assert_success=False)
+        print(x.stdout, x.stderr)
 
     return {
         "project_path": project_path_str,
