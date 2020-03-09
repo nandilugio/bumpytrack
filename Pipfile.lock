@@ -139,11 +139,11 @@
         },
         "importlib-resources": {
             "hashes": [
-                "sha256:6aefffdf63634bd94600dd0691fd6430902272bace0572934fa23c81473a7ff7",
-                "sha256:ce84b1c9c05078e1797700505bd1bc386cee9561002a9bdcfcba634adc6333e5"
+                "sha256:1dff36d42d94bd523eeb847c25c7dd327cb56686d74a26dfcc8d67c504922d59",
+                "sha256:7f0e1b2b5f3981e39c52da0f99b2955353c5a139c314994d1126c2551ace9bdf"
             ],
             "markers": "python_version < '3.7'",
-            "version": "==1.2.0"
+            "version": "==1.3.1"
         },
         "mock": {
             "hashes": [
@@ -179,11 +179,11 @@
         },
         "pepython": {
             "hashes": [
-                "sha256:41bd8484c814a3308aec49a60a46610967bd4220d9113b8f746e02ab988a773c",
-                "sha256:ec30262114e06ffa77678832488e0468a17d21dad806fc7762f5613e343d5d8a"
+                "sha256:04e65d57e400b15b752e255ea1c13221f4089f8f7cb7425b1bab1097d0859e14",
+                "sha256:48f6de1dfd9d8613605340e94dc1ccb193ec8b8773da0408f4b9d2d65722ddb4"
             ],
             "index": "pypi",
-            "version": "==0.2.3"
+            "version": "==0.2.4"
         },
         "pkginfo": {
             "hashes": [
@@ -368,10 +368,10 @@
         },
         "virtualenv": {
             "hashes": [
-                "sha256:0c04c7e8e0314470b4c2b43740ff68be1c62bb3fdef8309341ff1daea60d49d1",
-                "sha256:1f0369d068d9761b5c1ed7b44dad1ec124727eb10bc7f4aaefbba0cdca3bd924"
+                "sha256:5eba85dfa176fde0425b9b3042ed83f05a1b6309a616b8a3e2a9a94f4bfa27b7",
+                "sha256:99f131be2f90ff2a8fd711261a27845b6c50fc008bef815e710c7fa844eb1467"
             ],
-            "version": "==20.0.8"
+            "version": "==20.0.9"
         },
         "wcwidth": {
             "hashes": [
