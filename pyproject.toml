@@ -9,7 +9,7 @@ search_template = "version=\"{version}\""
 
 [[tool.bumpytrack.file_replaces]]
 path = "README.md"
-search_template = "Current version: {version}"
+search_template = "**Current version:** {version}"
 
 [[tool.bumpytrack.file_replaces]]
 path = "src/bumpytrack.py"

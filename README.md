@@ -1,6 +1,8 @@
-Current version: 1.1.3
-
+**Current version:** 1.1.3 </br>
 Compatible with Python >=2.7 and >=3.5
+
+**Pypi:** https://pypi.org/project/bumpytrack/ </br>
+**Github:** https://github.com/nandilugio/bumpytrack
 
 # BumpyTrack
 
@@ -65,9 +67,9 @@ Some of the available options:
   --verbose
 ```
 
-You can also just [peek at the code](https://github.com/nandilugio/bumpytrack/blob/master/bumpytrack/bumpytrack.py). Not much of it... it just adds one to some little numbers ;p
+You can also just [peek at the code](https://github.com/nandilugio/bumpytrack/blob/master/src/bumpytrack.py). Not much of it... it just adds one to some little numbers ;p
 
-## Development
+## Contributing
 
 Make sure you have the lastest `pip` and `pipenv` versions:
 
