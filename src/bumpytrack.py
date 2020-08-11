@@ -282,7 +282,7 @@ def commandline_entrypoint():
     # Parse args
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument("--version", action="version", version="Version: 1.1.3")  # Replaced by bumpytrack itself
+    parser.add_argument("--version", action="version", version="Version: 1.1.4")  # Replaced by bumpytrack itself
     parser.add_argument("command", help="version token to bump ('major', 'minor' or 'patch') or 'git-undo' to remove last bump commit and tag")
     parser.add_argument("--current-version", help="force current version instead using version in config file")
     parser.add_argument("--new-version", help="force new version instead using version in config file")

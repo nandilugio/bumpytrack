@@ -1,4 +1,4 @@
-**Current version:** 1.1.3 </br>
+**Current version:** 1.1.4 </br>
 Compatible with Python >=2.7 and >=3.5
 
 **Pypi:** https://pypi.org/project/bumpytrack/ </br>
