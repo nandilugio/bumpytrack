@@ -114,9 +114,9 @@ def test_bump_replaces_version_in_files(project_context):
             "bumpytrack minor --no-git-commit --no-git-tag --config-path " + project_context["config_path"]
         )
         assert completed_process.stdout.strip() == \
-               b"Current version: '1.2.3'\n" \
-               b"New version: '1.3.0'\n" \
-               b"Replacing version srting in files"
+               b"Current version: '1.2.3'.\n" \
+               b"New version: '1.3.0'.\n" \
+               b"Replacing version string in files..."
         with open(project_context["config_path"], "rb") as f:
             config_file_contents = f.read()
             assert b"1.3.0" in config_file_contents
@@ -167,9 +167,9 @@ def test_git_undo_removes_latest_bump_and_nothing_else(project_context):
 
         # Assert undo was ok and we're in the same situation as before last bump
         assert completed_process.stdout.strip() == \
-               b"Undoing bump to version: '2.1.0'\n" \
-               b"Bump commit undone\n" \
-               b"Bump tag removed"
+               b"Undoing bump to version: '2.1.0'.\n" \
+               b"Bump commit undone.\n" \
+               b"Bump tag removed."
         assert run("git log --oneline").stdout == git_log_before_last_bump
         assert run("git tag").stdout == git_tags_before_last_bump
         assert run("cat ./*").stdout == cat_project_before_last_bump
@@ -179,8 +179,8 @@ def test_git_undo_removes_latest_bump_and_nothing_else(project_context):
 
         # Assert undo didn't take effect and we're still in the same situation as before last bump
         assert completed_process.returncode != 0
-        assert completed_process.stdout.strip() == b"Undoing bump to version: '2.0.0'"
-        assert completed_process.stderr.strip() == b"Can only undo bumps corresponding to the most recent commit. Aborting!"
+        assert completed_process.stdout.strip() == b"Undoing bump to version: '2.0.0'."
+        assert completed_process.stderr.strip() == b"Can only undo bumps corresponding to the most recent commit.\nAborting!"
         assert run("git log --oneline").stdout == git_log_before_last_bump
         assert run("git tag").stdout == git_tags_before_last_bump
         assert run("cat ./*").stdout == cat_project_before_last_bump
@@ -215,8 +215,9 @@ def test_git_undo_removes_latest_bump_commit_or_tag_separately(project_context):
 
         # Assert undo was ok and we're in the same situation as before last bump
         assert completed_process.stdout.strip() == \
-               b"Undoing bump to version: '1.3.0'\n" \
-               b"Bump commit undone"
+               b"Undoing bump to version: '1.3.0'.\n" \
+               b"Bump commit undone.\n" \
+               b"Could not delete tag 'v1.3.0'. Did it exist?"
         assert run("git log --oneline").stdout == git_log_before_last_bump
         assert run("git tag").stdout == git_tags_before_last_bump
         assert run("cat ./*").stdout == cat_project_before_last_bump
@@ -226,8 +227,8 @@ def test_git_undo_removes_latest_bump_commit_or_tag_separately(project_context):
 
         # Assert undo didn't take effect and we're still in the same situation as before last bump
         assert completed_process.returncode != 0
-        assert completed_process.stdout.strip() == b"Undoing bump to version: '1.2.4'"
-        assert completed_process.stderr.strip() == b"Can only undo bumps corresponding to the most recent commit. Aborting!"
+        assert completed_process.stdout.strip() == b"Undoing bump to version: '1.2.4'."
+        assert completed_process.stderr.strip() == b"Can only undo bumps corresponding to the most recent commit.\nAborting!"
         assert run("git log --oneline").stdout == git_log_before_last_bump
         assert run("git tag").stdout == git_tags_before_last_bump
         assert run("cat ./*").stdout == cat_project_before_last_bump
@@ -241,7 +242,7 @@ def test_version_incrementing(fail_mocking):
 
     fail_mock.assert_not_called()
     stopping_at_fail(bumpytrack.increment_version)("1.2.3", "not_a_valid_part")
-    fail_mock.assert_called_once_with("Part should be one of: major, minor or patch.")
+    fail_mock.assert_called_once_with("Part 'not_a_valid_part' not recognized. Should be one of: major, minor or patch.")
 
     assert stopping_at_fail(bumpytrack.increment_version)("1.2.3", "major") == "2.0.0"
     assert stopping_at_fail(bumpytrack.increment_version)("1.2.3", "minor") == "1.3.0"
