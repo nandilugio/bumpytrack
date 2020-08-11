@@ -17,6 +17,8 @@ else:
 
 
 class Logger(object):
+    _verbose = False
+
     def set_verbose(self,verbose=True):
         self._verbose = verbose
 
