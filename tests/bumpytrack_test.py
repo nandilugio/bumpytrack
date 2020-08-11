@@ -35,7 +35,11 @@ def run(command, assert_success=True):
     )
 
     if assert_success:
-        assert completed_process.returncode == 0
+        if completed_process.returncode != 0:
+            print("Non-zero exit running " + command)
+            print("Stdout was:\n" + completed_process.stdout)
+            print("Stderr was:\n" + completed_process.stderr)
+            assert False
 
     return completed_process
 
