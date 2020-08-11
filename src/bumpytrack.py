@@ -13,6 +13,9 @@ else:
     import subprocess
 
 
+# Misc #########################################################################
+
+
 class Result(object):
     def __init__(self, value=None):
         self.value = value
@@ -29,6 +32,15 @@ class ErrorResult(Result):
         super(ErrorResult, self).__init__(*a, **kwa)
         self.ok = False
         self.error = self.value
+
+
+def user_request(config_value, args_override, default):
+    if args_override is not None:
+        return args_override
+    elif config_value is not None:
+        return config_value
+    else:
+        return default
 
 
 # Logging ######################################################################
@@ -205,13 +217,13 @@ def do_bump(args, config, config_path):
         modified_files.append(file_path)
 
     # Git commit file changes
-    git_commit_requested = args.get("git_commit", config.get("git_commit", False))
+    git_commit_requested = user_request(config.get("git_commit"), args.get("git_commit"), False)
     if git_commit_requested:
         logger.log("Committing changes to Git.")
         git_bump_commit(modified_files, current_version, new_version)
 
     # Git tag new version
-    git_tag_requested = args.get("git_tag", config.get("git_tag", False))
+    git_tag_requested = user_request(config.get("git_tag"), args.get("git_tag"), False)
     if git_tag_requested:
         logger.log("Adding version tag to Git.")
         git_bump_tag(new_version)
