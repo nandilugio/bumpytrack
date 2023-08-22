@@ -84,6 +84,8 @@ pipenv shell
 pipenv install -d
 ```
 
+The installed `bumpytrack` within the pipenv environment is the editable (alla `pip install -e .`) version of the package, so you can manually test right away.
+
 This tool uses both [`pipenv`](https://pipenv.readthedocs.io/) for development and [`setuptools`](https://setuptools.readthedocs.io/) for packaging and distribution. To this date there is not a 100% community-accepted best practice so I've taken [this approach](https://github.com/pypa/pipenv/issues/209#issuecomment-337409290). In summary:
 
 To add an _application_ dependency, add it in `setup.py` and leave it with a loose version definition. Then, just do `pipenv install -e .` to install the dependency. Pipenv locking mecanism will work as expected, since bumpytrack itself in in the `[packages]` section of `Pipfile` (check `Pipfile.lock` and you'll find the deps there).
