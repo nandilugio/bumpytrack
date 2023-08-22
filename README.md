@@ -74,7 +74,7 @@ You can also just [peek at the code](https://github.com/nandilugio/bumpytrack/bl
 Make sure you have the lastest `pip` and `pipenv` versions:
 
 ```bash
-pip install --update pip pipenv
+pip install --upgrade pip pipenv
 ```
 
 To start developing, start the environment by:
