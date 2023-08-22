@@ -281,7 +281,7 @@ def dispatch(args, config, config_path):
 def commandline_entrypoint():
     # Parse args
     import argparse
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Bump the semantic version of your project.")
     parser.add_argument("--version", action="version", version="Version: 1.1.4")  # Replaced by bumpytrack itself
     parser.add_argument("command", help="version token to bump ('major', 'minor' or 'patch') or 'git-undo' to remove last bump commit and tag")
     parser.add_argument("--current-version", help="force current version instead using version in config file")
