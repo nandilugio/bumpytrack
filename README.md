@@ -1,7 +1,8 @@
 ![CI](https://github.com/nandilugio/bumpytrack/actions/workflows/ci.yml/badge.svg)
 
-**Current version:** 1.1.5 </br>
-Tested with Python 3.8, 3,9, 3.10 and 3.11. Code is simple. Probably works in other versions.
+**Current version:** 1.1.5
+
+Tested with Python 3.8, 3,9, 3.10 and 3.11 on latest Linux, MacOS and Windows. Code is simple. Probably works in other versions and platforms.
 
 **Pypi:** https://pypi.org/project/bumpytrack/ </br>
 **Github:** https://github.com/nandilugio/bumpytrack

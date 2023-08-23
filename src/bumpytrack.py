@@ -68,9 +68,14 @@ def fail(message):
 
 
 def run_command(command_tokens, allow_failures=False):
-    completed_process = subprocess.run(command_tokens, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    completed_process = subprocess.run(
+        command_tokens,
+        encoding='utf-8',
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT
+    )
     failed = completed_process.returncode != 0
-    output = completed_process.stdout.strip().decode('utf-8')  # Contains both stdout and stderr
+    output = completed_process.stdout.strip()  # Contains both stdout and stderr
 
     if failed and not allow_failures:
         command = " ".join(command_tokens)

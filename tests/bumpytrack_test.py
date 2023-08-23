@@ -23,6 +23,7 @@ def run(command, assert_success=True):
     completed_process = subprocess.run(
         command,
         shell=True,
+        encoding='utf-8',
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -55,10 +56,10 @@ def project_context(tmpdir):
 
     with cwd_at(project_path_str):
         run("git init")
-        run("git config user.email 'test@test.test'")
+        run("git config user.email \"test@test.test\"")
         run("git config user.name test")
         run("git add .")
-        run("git commit -m 'Initial commit.'")
+        run("git commit -m \"Initial commit.\"")
 
     return {
         "project_path": project_path_str,
@@ -88,17 +89,17 @@ def fail_mocking(mocker):
     return fail_mock, stopping_at_fail
 
 
-# Feature/Integration Tests ####################################################
+# End-to-End Tests #############################################################
 
 
 def test_cli_info():
     completed_process = run("bumpytrack -h")
-    assert b"usage:" in completed_process.stdout
+    assert "usage:" in completed_process.stdout
 
     completed_process = run("bumpytrack --version")
     # Add stdout and stderr not to restrict where the version is actually written
     process_output = completed_process.stdout.strip() + completed_process.stderr.strip()
-    assert process_output == b"Version: 1.1.5"  # Replaced by bumpytrack itself
+    assert process_output == "Version: 1.1.5"  # Replaced by bumpytrack itself
 
 
 def test_bump_replaces_version_in_files(project_context):
@@ -107,30 +108,30 @@ def test_bump_replaces_version_in_files(project_context):
             "bumpytrack minor --no-git-commit --no-git-tag --config-path " + project_context["config_path"]
         )
         assert completed_process.stdout.strip() == \
-               b"Current version: '1.2.3'.\n" \
-               b"New version: '1.3.0'.\n" \
-               b"Replacing version string in files..."
-        with open(project_context["config_path"], "rb") as f:
+               "Current version: '1.2.3'.\n" \
+               "New version: '1.3.0'.\n" \
+               "Replacing version string in files..."
+        with open(project_context["config_path"], "r", encoding="utf-8") as f:
             config_file_contents = f.read()
-            assert b"1.3.0" in config_file_contents
-        with open(project_context["replaceable_file_path"], "rb") as f:
+            assert "1.3.0" in config_file_contents
+        with open(project_context["replaceable_file_path"], "r", encoding="utf-8") as f:
             replaceable_file_contents = f.read()
-            assert b"1.3.0" in replaceable_file_contents
-            assert b"\xc3\xa1\xc3\xa8\xc4\xa9\xc3\xb4\xc3\xbc" in replaceable_file_contents  # UTF-8 for "áèĩôü"
+            assert "1.3.0" in replaceable_file_contents
+            assert "áèĩôü" in replaceable_file_contents
 
 
 def test_bump_commits_and_tags_repo(project_context):
     with cwd_at(project_context["project_path"]):
         completed_process = run("git log --oneline")
-        assert b"Bumping version" not in completed_process.stdout
+        assert "Bumping version" not in completed_process.stdout
 
         run("bumpytrack patch --git-commit --git-tag --config-path " + project_context["config_path"])
 
         completed_process = run("git log --oneline")
-        assert b"Bumping version: 1.2.3 \xe2\x86\x92 1.2.4" in completed_process.stdout  # UTF-8 for "→"
+        assert "Bumping version: 1.2.3 → 1.2.4" in completed_process.stdout
 
         completed_process = run("git describe --tags --abbrev=0")
-        assert completed_process.stdout.strip() == b"v1.2.4"
+        assert completed_process.stdout.strip() == "v1.2.4"
 
 
 def test_git_undo_removes_latest_bump_and_nothing_else(project_context):
@@ -138,9 +139,9 @@ def test_git_undo_removes_latest_bump_and_nothing_else(project_context):
 
         # Build previous state, containing other bumps
         run("bumpytrack major --git-commit --git-tag --config-path " + project_context["config_path"])  # Bumps to 2.0.0
-        with open(project_context["source_file_path"], "w") as f: f.write("New source line.")
+        with open(project_context["source_file_path"], "w", encoding="utf-8") as f: f.write("New source line.")
         run("git add .")
-        run("git commit -m 'Some changes...'")
+        run("git commit -m \"Some changes...\"")
 
         # Remember the state we want to be in after we undo
         git_log_before_last_bump = run("git log --oneline").stdout
@@ -160,9 +161,9 @@ def test_git_undo_removes_latest_bump_and_nothing_else(project_context):
 
         # Assert undo was ok and we're in the same situation as before last bump
         assert completed_process.stdout.strip() == \
-               b"Undoing bump to version: '2.1.0'.\n" \
-               b"Bump commit undone.\n" \
-               b"Bump tag removed."
+               "Undoing bump to version: '2.1.0'.\n" \
+               "Bump commit undone.\n" \
+               "Bump tag removed."
         assert run("git log --oneline").stdout == git_log_before_last_bump
         assert run("git tag").stdout == git_tags_before_last_bump
         assert run("cat ./*").stdout == cat_project_before_last_bump
@@ -172,8 +173,8 @@ def test_git_undo_removes_latest_bump_and_nothing_else(project_context):
 
         # Assert undo didn't take effect and we're still in the same situation as before last bump
         assert completed_process.returncode != 0
-        assert completed_process.stdout.strip() == b"Undoing bump to version: '2.0.0'."
-        assert completed_process.stderr.strip() == b"Can only undo bumps corresponding to the most recent commit.\nAborting!"
+        assert completed_process.stdout.strip() == "Undoing bump to version: '2.0.0'."
+        assert completed_process.stderr.strip() == "Can only undo bumps corresponding to the most recent commit.\nAborting!"
         assert run("git log --oneline").stdout == git_log_before_last_bump
         assert run("git tag").stdout == git_tags_before_last_bump
         assert run("cat ./*").stdout == cat_project_before_last_bump
@@ -184,9 +185,9 @@ def test_git_undo_removes_latest_bump_commit_or_tag_separately(project_context):
 
         # Build previous state, containing other bumps
         run("bumpytrack patch --git-commit --git-tag --config-path " + project_context["config_path"])  # Bumps to 1.2.4
-        with open(project_context["source_file_path"], "w") as f: f.write("New source line.")
+        with open(project_context["source_file_path"], "w", encoding="utf-8") as f: f.write("New source line.")
         run("git add .")
-        run("git commit -m 'Some changes...'")
+        run("git commit -m \"Some changes...\"")
 
         # Remember the state we want to be in after we undo
         git_log_before_last_bump = run("git log --oneline").stdout
@@ -208,9 +209,9 @@ def test_git_undo_removes_latest_bump_commit_or_tag_separately(project_context):
 
         # Assert undo was ok and we're in the same situation as before last bump
         assert completed_process.stdout.strip() == \
-               b"Undoing bump to version: '1.3.0'.\n" \
-               b"Bump commit undone.\n" \
-               b"Could not delete tag 'v1.3.0'. Did it exist?"
+               "Undoing bump to version: '1.3.0'.\n" \
+               "Bump commit undone.\n" \
+               "Could not delete tag 'v1.3.0'. Did it exist?"
         assert run("git log --oneline").stdout == git_log_before_last_bump
         assert run("git tag").stdout == git_tags_before_last_bump
         assert run("cat ./*").stdout == cat_project_before_last_bump
@@ -220,8 +221,8 @@ def test_git_undo_removes_latest_bump_commit_or_tag_separately(project_context):
 
         # Assert undo didn't take effect and we're still in the same situation as before last bump
         assert completed_process.returncode != 0
-        assert completed_process.stdout.strip() == b"Undoing bump to version: '1.2.4'."
-        assert completed_process.stderr.strip() == b"Can only undo bumps corresponding to the most recent commit.\nAborting!"
+        assert completed_process.stdout.strip() == "Undoing bump to version: '1.2.4'."
+        assert completed_process.stderr.strip() == "Can only undo bumps corresponding to the most recent commit.\nAborting!"
         assert run("git log --oneline").stdout == git_log_before_last_bump
         assert run("git tag").stdout == git_tags_before_last_bump
         assert run("cat ./*").stdout == cat_project_before_last_bump
