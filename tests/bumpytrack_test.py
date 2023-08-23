@@ -105,7 +105,7 @@ def test_cli_info():
     completed_process = run("bumpytrack --version")
     # Add stdout and stderr not to restrict where the version is actually written
     process_output = completed_process.stdout.strip() + completed_process.stderr.strip()
-    assert process_output == b"Version: 1.1.4"  # Replaced by bumpytrack itself
+    assert process_output == b"Version: 1.1.5"  # Replaced by bumpytrack itself
 
 
 def test_bump_replaces_version_in_files(project_context):
