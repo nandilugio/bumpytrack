@@ -1,16 +1,8 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function
-from __future__ import unicode_literals
-
 import codecs
 import os
+import subprocess
 import sys
 import toml
-
-if os.name == 'posix' and sys.version_info[0] < 3:
-    import subprocess32 as subprocess
-else:
-    import subprocess
 
 
 # Misc #########################################################################
@@ -82,7 +74,7 @@ def run_command(command_tokens, allow_failures=False):
 
     if failed and not allow_failures:
         command = " ".join(command_tokens)
-        fail("Failed to execute '{command}'. Output was:\n\n{output}\n".format(**locals()))
+        fail(f"Failed to execute '{command}'. Output was:\n\n{output}\n")
 
     if failed:
         return ErrorResult(output)
@@ -120,7 +112,7 @@ def increment_version(current_version, part):
     elif part == "patch":
         new_version_tokens = [current_version_tokens[0], current_version_tokens[1], current_version_tokens[2] + 1]
     else:
-        fail("Part '{part}' not recognized. Should be one of: major, minor or patch.".format(**locals()))
+        fail(f"Part '{part}' not recognized. Should be one of: major, minor or patch.")
 
     return version_tokens_to_str(new_version_tokens)
 
@@ -130,15 +122,15 @@ def increment_version(current_version, part):
 
 def file_replace(file_replace_config, current_version, new_version):
     file_path = file_replace_config["path"]
-    logger.log_verbose("Replacing version string in '{file_path}'...".format(**locals()))
+    logger.log_verbose(f"Replacing version string in '{file_path}'...")
 
     search_template = file_replace_config.get("search_template", "{version}")
     search = search_template.format(version=current_version)
     replace = search_template.format(version=new_version)
-    logger.log_verbose("Searching '{search}' and replacing for '{replace}'...".format(**locals()))
+    logger.log_verbose(f"Searching '{search}' and replacing for '{replace}'...")
 
     if not os.access(file_path, os.R_OK | os.W_OK):
-        fail("File '{file_path}' not found or not accessible.".format(**locals()))
+        fail(f"File '{file_path}' not found or not accessible.")
 
     original_file_contents = None
     with codecs.open(file_replace_config["path"], "r", encoding="utf-8") as file:
@@ -146,8 +138,8 @@ def file_replace(file_replace_config, current_version, new_version):
 
     new_file_contents = original_file_contents.replace(search, replace)
     if original_file_contents == new_file_contents:
-        fail("Nothing to replace in file '{file_path}'. This looks like a misconfiguration or an"
-             "inconsistent version in config file.".format(**locals()))
+        fail(f"Nothing to replace in file '{file_path}'. This looks like a misconfiguration or an"
+             "inconsistent version in config file.")
 
     with codecs.open(file_replace_config["path"], "w", encoding="utf-8") as file:
         file.write(new_file_contents)
@@ -155,7 +147,7 @@ def file_replace(file_replace_config, current_version, new_version):
 
 def git_bump_commit(modified_files, current_version, new_version):
     # TODO: make git path configurable
-    commit_message = u"Bumping version: {current_version} → {new_version}".format(**locals())
+    commit_message = f"Bumping version: {current_version} → {new_version}"
     run_command(["git", "reset", "HEAD"])
     run_command(["git", "add"] + modified_files)
     run_command(["git", "commit", "-m", commit_message])
@@ -163,7 +155,7 @@ def git_bump_commit(modified_files, current_version, new_version):
 
 def git_bump_tag(new_version):
     # TODO: make this format configurable
-    tag = "v{new_version}".format(**locals())
+    tag = f"v{new_version}"
     run_command(["git", "tag", tag])
 
 
@@ -180,10 +172,10 @@ def git_undo_bump_commit(bumped_version):
 
 
 def git_undo_bump_tag(bumped_version):
-    tag = "v{bumped_version}".format(**locals())
+    tag = f"v{bumped_version}"
     tag_deletion_result = run_command(["git", "tag", "-d", tag], allow_failures=True)
     if not tag_deletion_result.ok:
-        return ErrorResult("Could not delete tag '{tag}'. Did it exist?".format(**locals()))
+        return ErrorResult(f"Could not delete tag '{tag}'. Did it exist?")
     return OkResult()
 
 
@@ -195,7 +187,7 @@ def do_bump(args, config, config_path):
     current_version = args.get("current_version") or config.get("current_version")
     if not current_version:
         fail("No way to obtain current version.")
-    logger.log("Current version: '{current_version}'.".format(**locals()))
+    logger.log(f"Current version: '{current_version}'.")
 
     # Get new version
     if args.get("new_version"):
@@ -204,7 +196,7 @@ def do_bump(args, config, config_path):
         new_version = increment_version(current_version, args.get("command"))
     else:
         fail("No way to obtain a new version.")
-    logger.log("New version: '{new_version}'.".format(**locals()))
+    logger.log(f"New version: '{new_version}'.")
 
     # Replace version in config file and other configured files
     logger.log("Replacing version string in files...")
@@ -234,7 +226,7 @@ def do_git_undo(args, config, config_path):
     current_version = args.get("current_version") or config.get("current_version")
     if not current_version:
         fail("No way to obtain current version")
-    logger.log("Undoing bump to version: '{current_version}'.".format(**locals()))
+    logger.log(f"Undoing bump to version: '{current_version}'.")
 
     # Undo bump git commit
     git_undo_bump_commit_result = git_undo_bump_commit(current_version)
