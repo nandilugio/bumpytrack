@@ -4,7 +4,6 @@ from pepython.task_def import task, s
 @task
 def clean():
     s("rm -rf build dist *.egg-info")
-    s("pipenv install -e .")
 
 
 @task
@@ -17,7 +16,7 @@ def build():
 @task
 def publish():
     #s("pipenv run twine upload --repository-url https://test.pypi.org/legacy/ dist/*", interactive=True)
-    s("pipenv run twine upload dist/*", interactive=True)
+    s("pipenv run twine upload dist/* --verbose", interactive=True)
 
 
 @task
