@@ -1,5 +1,5 @@
 **Current version:** 1.1.4 </br>
-Compatible with Python >=2.7 and >=3.5
+Tested with Python 3.8, 3,9, 3.10 and 3.11. Code is simple. Probably works in other versions.
 
 **Pypi:** https://pypi.org/project/bumpytrack/ </br>
 **Github:** https://github.com/nandilugio/bumpytrack
@@ -96,9 +96,9 @@ This way there's a single source of truth for package definition. No need to rep
 
 ### Tests
 
-To test the project run [`pytest`](https://docs.pytest.org/) inside the `pipenv`. Once you have something running, run [`tox`](https://tox.readthedocs.io/) to check it's compatible with all python versions supported.
+To test the project run [`pytest`](https://docs.pytest.org/) inside the `pipenv`. Once you have something running, run [`tox`](https://github.com/tox-dev/tox) to check it's compatible with all python versions supported.
 
-IMPORTANT: in order to make `tox` test with different python versions, those have to be installed. [`pyenv`](https://github.com/pyenv/pyenv) is reccomended for that purpose. [`tox-pyenv`](https://github.com/samstav/tox-pyenv) is installed so it should work out of the box.
+IMPORTANT: in order to make `tox` test with different python versions, those have to be installed. [`pyenv`](https://github.com/pyenv/pyenv) is used for that purpose and should work out of the box. Check the required versions in [`tox.ini`](https://github.com/nandilugio/bumpytrack/blob/master/tox.ini) and related files.
 
 ### Dev tasks automation and publishing to PyPI
 

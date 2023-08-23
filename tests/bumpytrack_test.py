@@ -100,7 +100,7 @@ def fail_mocking(mocker):
 
 def test_cli_info():
     completed_process = run("bumpytrack -h")
-    assert "usage:" in completed_process.stdout
+    assert b"usage:" in completed_process.stdout
 
     completed_process = run("bumpytrack --version")
     # Add stdout and stderr not to restrict where the version is actually written

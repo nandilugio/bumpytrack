@@ -3,7 +3,7 @@ dist
 pip-wheel-metadata
 *.egg-info
 *.pyc
-.tox
 .pytest_cache
-dev_requirements.txt
+.tox
+dev_requirements_tox.txt
 
