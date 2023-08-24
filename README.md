@@ -28,6 +28,11 @@ It will:
 
 Now you're free to push, merge to master and deploy!
 
+```bash
+git push
+git push --tags
+```
+
 Unless you forgot something or bumped by mistake of course, in which case you can just undo the commit and tag created in Git by doing:
 
 ```bash
