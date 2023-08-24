@@ -27,7 +27,7 @@ setuptools.setup(
     zip_safe=False,
     install_requires=[
         "toml>=0.9.4",
-        "subprocess32",
+        "subprocess",
     ],
     entry_points={
         "console_scripts": [
